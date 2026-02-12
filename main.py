@@ -52,12 +52,12 @@ def get_live_matches():
     return result
 
 
-async def main():
+def main():
     print("⚡️ Bot is running...")
 
     while True:
         try:
-            matches = await get_live_matches()
+            matches = get_live_matches()
             for match in matches:
                 if match["shots_on_target"] <= 1 and match["xg"] <= 0.5:
                     message = (
@@ -75,12 +75,10 @@ async def main():
                     print(f"⏭ {match['home_team']} vs {match['away_team']} 不符合條件")
         except Exception as e:
             print(f"❌ Error during match check: {e}")
-
-        await asyncio.sleep(60)
-
+        time.sleep(60)
 if __name__ == "__main__":
     print("⚡️ Bot is starting...")
     try:
-        asyncio.run(main())
+        main()
     except Exception as e:
         print(f"❌ Fatal Error: {e}")
