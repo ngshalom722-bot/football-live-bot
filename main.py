@@ -1,7 +1,6 @@
 import requests
 import time
 import os
-
 # 讀取環境變數（Railway 會自動提供）
 ODDS_API_KEY = os.getenv("ODDS_API_KEY")
 FOOTBALL_API_KEY = os.getenv("FOOTBALL_API_KEY")
@@ -30,14 +29,12 @@ def get_odds():
         return requests.get(url).json()
     except:
         return None
-
 # SofaScore：抓走地數據（xG、射門、角球等）
 def get_sofascore_stats(event_id):
     try:
         url = f"https://api.sofascore.com/api/v1/event/{event_id}/statistics"
         r = requests.get(url).json()
         groups = r["statistics"][0]["groups"]
-
         stats = {
             "shots": groups[0]["statisticsItems"][0]["home"],
             "shots_on": groups[0]["statisticsItems"][1]["home"],
@@ -49,19 +46,15 @@ def get_sofascore_stats(event_id):
         return stats
     except:
         return None
-
 # AI 分析（平衡模式）
 def analyze(match, stats):
     minute = match["fixture"]["status"]["elapsed"]
     home = match["teams"]["home"]["name"]
     away = match["teams"]["away"]["name"]
     match_name = f"{home} vs {away}"
-
     if stats is None:
         return None
-
     pace = stats["attacks"] / max(minute, 1)
-
     score = 0
     if stats["xg"] < 0.6: score += 1
     if stats["shots_on"] <= 2: score += 1
@@ -80,28 +73,24 @@ xG：{stats['xg']}
 符合 4 項中的 {score} 項
 建議：小球有價值
 """
-
     return None
-
 # 主程式
 def main():
     while True:
         matches = get_live_matches()
-
         for m in matches:
             match_id = m["fixture"]["id"]
-
             if match_id in sent_signals:
                 continue
-
             stats = get_sofascore_stats(match_id)
             signal = analyze(m, stats)
-
             if signal:
                 send(signal)
                 sent_signals.add(match_id)
-
         time.sleep(10)
-
 if __name__ == "__main__":
-    main()
+    print("⚡️ Bot is starting...")
+    try:
+        main()
+    except Exception as e:
+        print(f"❌ Error: {e}")
