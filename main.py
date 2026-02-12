@@ -17,23 +17,26 @@ def send_telegram_message(message):
     response = requests.post(url, json=payload)
     print(f"📤 Sent message: {response.status_code}")
 
-async def get_live_matches():
+import requests
+
+def get_live_matches():
     print("📡 Fetching live matches...")
-    api = SofascoreAPI()
-    matches = await api.get_live_matches()
-    await api.close()
+
+    url = "https://api.sofascore.com/api/v1/sport/football/events/live"
+    response = requests.get(url)
+    data = response.json()
 
     result = []
-    for match in matches:
+    for event in data.get("events", []):
         try:
-            home = match['homeTeam']['name']
-            away = match['awayTeam']['name']
-            minute = match['time']['minute']
-            stats = match['statistics']
-            xg_home = stats['expectedGoals']['home']
-            xg_away = stats['expectedGoals']['away']
-            shots_home = stats['shotsOnTarget']['home']
-            shots_away = stats['shotsOnTarget']['away']
+            home = event["homeTeam"]["name"]
+            away = event["awayTeam"]["name"]
+            minute = event["time"]["minute"]
+            stats = event.get("statistics", {}).get("summary", {})
+            xg_home = stats.get("expectedGoals", {}).get("home", 0)
+            xg_away = stats.get("expectedGoals", {}).get("away", 0)
+            shots_home = stats.get("shotsOnTarget", {}).get("home", 0)
+            shots_away = stats.get("shotsOnTarget", {}).get("away", 0)
 
             result.append({
                 "home_team": home,
@@ -41,12 +44,13 @@ async def get_live_matches():
                 "minute": minute,
                 "xg": round(xg_home + xg_away, 2),
                 "shots_on_target": shots_home + shots_away,
-                "dangerous_attacks_pct": 50,  # 可根據需要補上
-                "pace": 0.5  # 可根據 possession 或其他數據估算
+                "dangerous_attacks_pct": 50,
+                "pace": 0.5
             })
         except Exception as e:
             print(f"⚠️ Error parsing match: {e}")
     return result
+
 
 async def main():
     print("⚡️ Bot is running...")
