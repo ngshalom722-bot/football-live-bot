@@ -1,12 +1,12 @@
 import os
 import time
 import requests
-import asyncio
-from sofascore_wrapper.api import SofascoreAPI
 
+# 讀取 Telegram 機器人設定
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 
+# 發送訊息到 Telegram
 def send_telegram_message(message):
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
     payload = {
@@ -17,8 +17,7 @@ def send_telegram_message(message):
     response = requests.post(url, json=payload)
     print(f"📤 Sent message: {response.status_code}")
 
-import requests
-
+# 抓取 SofaScore 即時比賽資料
 def get_live_matches():
     print("📡 Fetching live matches...")
 
@@ -44,14 +43,14 @@ def get_live_matches():
                 "minute": minute,
                 "xg": round(xg_home + xg_away, 2),
                 "shots_on_target": shots_home + shots_away,
-                "dangerous_attacks_pct": 50,
-                "pace": 0.5
+                "dangerous_attacks_pct": 50,  # 可根據需要補上
+                "pace": 0.5  # 可根據 possession 或其他數據估算
             })
         except Exception as e:
             print(f"⚠️ Error parsing match: {e}")
     return result
 
-
+# 主邏輯：每分鐘檢查一次比賽並發送訊號
 def main():
     print("⚡️ Bot is running...")
 
@@ -75,7 +74,10 @@ def main():
                     print(f"⏭ {match['home_team']} vs {match['away_team']} 不符合條件")
         except Exception as e:
             print(f"❌ Error during match check: {e}")
+
         time.sleep(60)
+
+# 程式進入點
 if __name__ == "__main__":
     print("⚡️ Bot is starting...")
     try:
